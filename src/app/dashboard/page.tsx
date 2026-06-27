@@ -7,7 +7,7 @@ import PageHeader from '@/components/PageHeader';
 import { formatCurrency, formatDate, getStatusColor } from '@/utils/storage';
 import { generateInsights } from '@/utils/insights';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
-import { DollarSign, Users, CreditCard, FileText, PlusCircle, UserPlus, Receipt, TrendingUp, AlertTriangle, Lightbulb, CheckCircle2, Info, RotateCcw } from 'lucide-react';
+import { DollarSign, Users, CreditCard, FileText, PlusCircle, UserPlus, Receipt, TrendingUp, AlertTriangle, Lightbulb, CheckCircle2, Info, RotateCcw, Trash2 } from 'lucide-react';
 import { Invoice } from '@/types';
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -63,20 +63,22 @@ const insightBg: Record<string, string> = {
 };
 
 export default function DashboardPage() {
-  const { data, loadDemoData } = useApp();
+  const { data, loadDemoData, clearAllData } = useApp();
   const { invoices, clients } = data;
 
-  const totalRevenue = invoices.filter(i => i.status === 'paid').reduce((s, i) => s + i.total, 0);
-  const outstanding = invoices.filter(i => i.status !== 'paid').reduce((s, i) => s + (i.total - i.amountPaid), 0);
-  const thisMonthInvoices = invoices.filter(i => {
+  const validInvoices = invoices.filter(inv => clients.some(c => c.id === inv.clientId));
+
+  const totalRevenue = validInvoices.filter(i => i.status === 'paid').reduce((s, i) => s + i.total, 0);
+  const outstanding = validInvoices.filter(i => i.status !== 'paid').reduce((s, i) => s + (i.total - i.amountPaid), 0);
+  const thisMonthInvoices = validInvoices.filter(i => {
     const d = new Date(i.createdAt);
     const now = new Date();
     return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
   }).length;
 
-  const insights = data.clients.length > 0 || data.invoices.length > 0 ? generateInsights(data) : [];
-  const revenueData = getRevenueData(invoices);
-  const paymentData = getPaymentData(invoices);
+  const insights = clients.length > 0 || validInvoices.length > 0 ? generateInsights({ ...data, invoices: validInvoices }) : [];
+  const revenueData = getRevenueData(validInvoices);
+  const paymentData = getPaymentData(validInvoices);
 
   return (
     <AppShell>
@@ -84,13 +86,24 @@ export default function DashboardPage() {
         title="Dashboard"
         description="Your business at a glance"
         action={
-          <button
-            onClick={loadDemoData}
-            className="flex items-center gap-2 text-sm font-medium text-brand-600 bg-brand-50 px-4 py-2 rounded-lg hover:bg-brand-100 transition-colors"
-          >
-            <RotateCcw className="w-4 h-4" />
-            Load Demo Data
-          </button>
+          <div className="flex gap-2">
+            {clients.length > 0 || invoices.length > 0 ? (
+              <button
+                onClick={clearAllData}
+                className="flex items-center gap-2 text-sm font-medium text-red-600 bg-red-50 px-4 py-2 rounded-lg hover:bg-red-100 transition-colors"
+              >
+                <Trash2 className="w-4 h-4" />
+                Reset All Data
+              </button>
+            ) : null}
+            <button
+              onClick={loadDemoData}
+              className="flex items-center gap-2 text-sm font-medium text-brand-600 bg-brand-50 px-4 py-2 rounded-lg hover:bg-brand-100 transition-colors"
+            >
+              <RotateCcw className="w-4 h-4" />
+              Load Demo Data
+            </button>
+          </div>
         }
       />
 
@@ -119,7 +132,7 @@ export default function DashboardPage() {
         {/* Recent Invoices */}
         <div className="lg:col-span-2 bg-white rounded-xl border border-gray-200 p-5">
           <h2 className="text-lg font-bold text-gray-900 mb-4">Recent Invoices</h2>
-          {invoices.length === 0 ? (
+          {validInvoices.length === 0 ? (
             <div className="text-center py-8 text-gray-400">
               <FileText className="w-10 h-10 mx-auto mb-2 opacity-50" />
               <p className="text-sm">No invoices yet. Create your first invoice!</p>
@@ -137,7 +150,7 @@ export default function DashboardPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {invoices.slice().reverse().slice(0, 6).map(inv => (
+                  {validInvoices.slice().reverse().slice(0, 6).map(inv => (
                     <tr key={inv.id} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
                       <td className="py-3 font-medium text-gray-900">{inv.invoiceNumber}</td>
                       <td className="py-3 text-gray-600">{inv.clientName}</td>

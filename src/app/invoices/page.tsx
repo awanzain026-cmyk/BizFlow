@@ -29,7 +29,8 @@ export default function InvoicesPage() {
   const gstAmount = useMemo(() => calculateGST(subtotal, form.gstRate), [subtotal, form.gstRate]);
   const total = subtotal + gstAmount;
 
-  const filteredInvoices = filter === 'all' ? invoices : invoices.filter(i => i.status === filter);
+  const clientInvoices = invoices.filter(inv => clients.some(c => c.id === inv.clientId));
+  const filteredInvoices = filter === 'all' ? clientInvoices : clientInvoices.filter(i => i.status === filter);
 
   const selectedClient = clients.find(c => c.id === form.clientId);
 
