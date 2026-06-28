@@ -32,7 +32,7 @@ export default function Footer() {
             <h3 className="text-white font-semibold mb-3">Company</h3>
             <div className="flex flex-col gap-2 text-sm">
               <span>Built with ❤️ in Pakistan</span>
-              <span className="text-gray-500">© 2024 BizFlow</span>
+              <span className="text-gray-500">© 2026 BizFlow</span>
             </div>
           </div>
         </div>

@@ -196,7 +196,7 @@ export default function HomePage() {
                 Ready to Transform Your Business?
               </h2>
               <p className="text-brand-100 mb-8 text-lg">
-                Join hundreds of Pakistani business owners using BizFlow. Free to start.
+                Built for Pakistani business owners who mean business.
               </p>
               <Link
                 href="/dashboard"
